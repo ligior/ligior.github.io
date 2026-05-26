@@ -41,9 +41,10 @@ const zones = [
 	{"name":"Swamp of Sorrows","continent":1,"object":null},
 	{"name":"Stranglethorn Vale","continent":1,"object":null},
 	{"name":"Blasted Lands","continent":1,"object":null},
-]
-let zonestopick = []
-let zonesclear = []
+];
+
+let zonestopick = [];
+let zonesclear = [];
 
 var mainAzeroth = document.getElementById("mainAzeroth");
 var continent = 1;
@@ -59,38 +60,47 @@ var mistakesnum = 0;
 var timestart = 0;
 var timeend = 0;
 var tooltipmain = document.getElementById("tooltip");
+
 document.addEventListener('mousemove', (e)=>{
-	tooltipmain.style.left = e.clientX;
-	tooltipmain.style.top = e.clientY;
+	tooltipmain.style.left = e.clientX + 'px';
+	tooltipmain.style.top = e.clientY + 'px';
 });
+
 var c = 0;
 for (let i = 0; i < svgmainAzeroth.children.length; i++)
 {
-    if (svgmainAzeroth.children[i].tagName != 'polygon')
-    {
-        continue;
-    }
-    zones[c]["object"] = svgmainAzeroth.children[i];
-    if (zones[c]["continent"] == 0)
-    {
-        for (let j = 0; j < zones[c]["object"].points.length; j++)
-        {
-            let point = zones[c]["object"].points.getItem(j);
-            point.x = point.x * 0.82 - 182;
-            point.y = point.y * 0.82 + 43;
-        }
-    }
-    else
-    {
-        for (let j = 0; j < zones[c]["object"].points.length; j++)
-        {
-            let point = zones[c]["object"].points.getItem(j);
-            point.x = point.x * 0.78 + 380;
-            point.y = point.y * 0.78 + 57;
-        }
-    }
-    c++;
+	if (svgmainAzeroth.children[i].tagName != 'polygon')
+	{
+		continue;
+	}
+	zones[c]["object"] = svgmainAzeroth.children[i];
+	
+	// Get points as string and transform
+	let pointsString = zones[c]["object"].getAttribute('points');
+	
+	if (zones[c]["continent"] == 0)
+	{
+		let newPoints = pointsString.split(/\s+/).map(pair => {
+			let [x, y] = pair.split(',').map(Number);
+			let newX = x * 0.82 - 182;
+			let newY = y * 0.82 + 43;
+			return `${Math.round(newX)},${Math.round(newY)}`;
+		}).join(' ');
+		zones[c]["object"].setAttribute('points', newPoints);
+	}
+	else
+	{
+		let newPoints = pointsString.split(/\s+/).map(pair => {
+			let [x, y] = pair.split(',').map(Number);
+			let newX = x * 0.78 + 380;
+			let newY = y * 0.78 + 57;
+			return `${Math.round(newX)},${Math.round(newY)}`;
+		}).join(' ');
+		zones[c]["object"].setAttribute('points', newPoints);
+	}
+	c++;
 }
+
 resultmain.innerText = "Click on any zone to start.";
 mistakesmain.innerText = "";
 gameend();
@@ -101,17 +111,26 @@ function gameend()
 	tooltipmain.innerText = "";
 	for (let i = 0; i < zones.length; i++)
 	{
+		if (!zones[i]["object"]) continue;
+		
 		zones[i]["object"].style.fill='rgb(255,255,255)';
 		zones[i]["object"].onclick = function(){ rollreset(i); };
 		zones[i]["object"].setAttribute('filter','url(#nullAzeroth)');
-		zones[i]["object"].onmouseenter = function() {
-			this.setAttribute('filter','url(#highlightAzeroth)');
-			tooltipmain.innerText = zones[i]["name"];
-		};
-		zones[i]["object"].onmouseleave = function() {
-			this.setAttribute('filter','url(#nullAzeroth)');
-			tooltipmain.innerText = "";
-		};
+		
+		// Use closure to capture the correct index
+		zones[i]["object"].onmouseenter = (function(idx) {
+			return function() {
+				this.setAttribute('filter','url(#highlightAzeroth)');
+				tooltipmain.innerText = zones[idx]["name"];
+			};
+		})(i);
+		
+		zones[i]["object"].onmouseleave = (function(idx) {
+			return function() {
+				this.setAttribute('filter','url(#nullAzeroth)');
+				tooltipmain.innerText = "";
+			};
+		})(i);
 	}
 }
 
@@ -122,6 +141,8 @@ function rollreset(ii)
 	zonesclear = [];
 	for (let i = 0; i < zones.length; i++)
 	{
+		if (!zones[i]["object"]) continue;
+		
 		zonestopick.push(i);
 		if (i == ii)
 		{
@@ -131,13 +152,24 @@ function rollreset(ii)
 		{
 			zones[i]["object"].setAttribute('filter','url(#darkenAzeroth)');
 		}
-		zones[i]["object"].onmouseenter = function() { zones[i]["object"].setAttribute('filter','url(#highlightAzeroth)'); };
-		zones[i]["object"].onmouseleave = function() { zones[i]["object"].setAttribute('filter','url(#darkenAzeroth)'); };
+		
+		zones[i]["object"].onmouseenter = (function(idx) {
+			return function() { 
+				this.setAttribute('filter','url(#highlightAzeroth)'); 
+			};
+		})(i);
+		
+		zones[i]["object"].onmouseleave = (function(idx) {
+			return function() { 
+				this.setAttribute('filter','url(#darkenAzeroth)'); 
+			};
+		})(i);
 	}
 	resultmain.innerText = "Game start!";
 	timestart = Date.now();
 	rollzone();
 }
+
 function rollzone()
 {
 	if (zonestopick.length == 0)
@@ -194,11 +226,16 @@ function rollzone()
 		gameend();
 		return;
 	}
+	
 	var rng = Math.floor(Math.random() * zonestopick.length);
-	objectivemain.innerText = "Please click on " + zones[zonestopick[rng]]["name"] + ".";
-	tooltipmain.innerText = zones[zonestopick[rng]]["name"] + "?";
+	let currentZoneIndex = zonestopick[rng];
+	objectivemain.innerText = "Please click on " + zones[currentZoneIndex]["name"] + ".";
+	tooltipmain.innerText = zones[currentZoneIndex]["name"] + "?";
+	
 	for (let i = 0; i < zones.length; i++)
 	{
+		if (!zones[i]["object"]) continue;
+		
 		var cleared = false;
 		for (let j = 0; j < zonesclear.length; j += 1)
 		{
@@ -222,14 +259,16 @@ function rollzone()
 			zones[i]["object"].onclick = function(){ };
 		}
 	}
-	zones[zonestopick[rng]]["object"].onclick = function(){
+	
+	zones[currentZoneIndex]["object"].onclick = function(){
 		resultmain.innerText = "Correct!";
 		resultmain.style.color = 'rgb(128,255,128)';
 		this.setAttribute('filter','url(#nullAzeroth)');
-		this.onmouseenter = function() {  };
-		this.onmouseleave = function() {  };
+		this.onmouseenter = function() { };
+		this.onmouseleave = function() { };
 		rollzone();
 	};
-	zonesclear.push(zonestopick[rng]);
+	
+	zonesclear.push(currentZoneIndex);
 	zonestopick.splice(rng, 1);
 }
