@@ -66,28 +66,30 @@ document.addEventListener('mousemove', (e)=>{
 var c = 0;
 for (let i = 0; i < svgmainAzeroth.children.length; i++)
 {
-	if (svgmainAzeroth.children[i].tagName != 'polygon')
-	{
-		continue;
-	}
-	zones[c]["object"] = svgmainAzeroth.children[i];
-	if (zones[c]["continent"] == 0)
-	{
-		for (let j = 0; j < zones[c]["object"].points.length; j++)
-		{
-			zones[c]["object"].points[j].x = zones[c]["object"].points[j].x * 0.82 - 182;
-			zones[c]["object"].points[j].y = zones[c]["object"].points[j].y * 0.82 + 43;
-		}
-	}
-	else
-	{
-		for (let j = 0; j < zones[c]["object"].points.length; j++)
-		{
-			zones[c]["object"].points[j].x = zones[c]["object"].points[j].x * 0.78 + 380;
-			zones[c]["object"].points[j].y = zones[c]["object"].points[j].y * 0.78 + 57;
-		}
-	}
-	c++;
+    if (svgmainAzeroth.children[i].tagName != 'polygon')
+    {
+        continue;
+    }
+    zones[c]["object"] = svgmainAzeroth.children[i];
+    if (zones[c]["continent"] == 0)
+    {
+        for (let j = 0; j < zones[c]["object"].points.length; j++)
+        {
+            let point = zones[c]["object"].points.getItem(j);
+            point.x = point.x * 0.82 - 182;
+            point.y = point.y * 0.82 + 43;
+        }
+    }
+    else
+    {
+        for (let j = 0; j < zones[c]["object"].points.length; j++)
+        {
+            let point = zones[c]["object"].points.getItem(j);
+            point.x = point.x * 0.78 + 380;
+            point.y = point.y * 0.78 + 57;
+        }
+    }
+    c++;
 }
 resultmain.innerText = "Click on any zone to start.";
 mistakesmain.innerText = "";
