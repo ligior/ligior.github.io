@@ -42,8 +42,8 @@ const zones = [
 	{"name":"Stranglethorn Vale","continent":1,"object":null},
 	{"name":"Blasted Lands","continent":1,"object":null},
 ]
-zonestopick = []
-zonesclear = []
+let zonestopick = []
+let zonesclear = []
 
 var mainAzeroth = document.getElementById("mainAzeroth");
 var continent = 1;
@@ -60,8 +60,8 @@ var timestart = 0;
 var timeend = 0;
 var tooltipmain = document.getElementById("tooltip");
 document.addEventListener('mousemove', (e)=>{
-	tooltipmain.style.left = event.clientX;
-	tooltipmain.style.top = event.clientY;
+	tooltipmain.style.left = e.clientX;
+	tooltipmain.style.top = e.clientY;
 });
 var c = 0;
 for (let i = 0; i < svgmainAzeroth.children.length; i++)
