@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка числа</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(145deg, #f6f9fc 0%, #e6f0f5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 2.5rem 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 25px 40px -10px rgba(0, 30, 50, 0.3),
+                        inset 0 1px 3px rgba(255,255,255,0.9);
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: 0.2s;
+        }
+        h2 {
+            color: #1a3b4f;
+            font-weight: 600;
+            font-size: 1.9rem;
+            margin-top: 0;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+        .sub {
+            text-align: center;
+            color: #2c5777;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            font-size: 1rem;
+            border-bottom: 1px dashed #9bb8d4;
+            padding-bottom: 1rem;
+        }
+        label {
+            font-weight: 500;
+            color: #0a2e40;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            letter-spacing: 0.3px;
+        }
+        input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            font-size: 1.1rem;
+            border: 2px solid #cbdbe9;
+            background: white;
+            border-radius: 60px;
+            outline: none;
+            transition: 0.2s;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.02);
+        }
+        input:focus {
+            border-color: #0077be;
+            box-shadow: 0 0 0 4px rgba(0,119,190,0.15), inset 0 2px 5px rgba(0,0,0,0.02);
+        }
+        button {
+            width: 100%;
+            padding: 1rem;
+            margin: 1.5rem 0 1.8rem 0;
+            border: none;
+            border-radius: 60px;
+            background: #1f5f8f;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(18, 67, 107, 0.3);
+            transition: 0.15s;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        button:hover {
+            background: #0b4a77;
+            transform: scale(1.01);
+            box-shadow: 0 12px 22px rgba(10, 50, 80, 0.35);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .message {
+            padding: 1rem 1.4rem;
+            border-radius: 60px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.3rem;
+            letter-spacing: 0.3px;
+            transition: 0.2s;
+            background: #eef4f9;
+            color: #1e3f5a;
+            box-shadow: inset 0 1px 4px #b0c7da, 0 5px 12px rgba(0,30,50,0.1);
+        }
+        .message.accepted {
+            background: #d2f0d2;
+            color: #005f20;
+            box-shadow: inset 0 1px 5px #a0c8a0, 0 5px 12px rgba(0,70,0,0.15);
+        }
+        .message.error {
+            background: #ffe1de;
+            color: #a12b1c;
+            box-shadow: inset 0 1px 5px #f0b8b0, 0 5px 12px rgba(150,0,0,0.1);
+        }
+        .hint {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #526e82;
+            text-align: center;
+            border-radius: 40px;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔢 Валидатор</h2>
+        <div class="sub">от 5 до 10 включительно</div>
+
+        <!-- форма ввода: при отправке вызывается js, страница не перезагружается -->
+        <form id="validatorForm" action="javascript:void(0);">
+            <label for="numberInput">Введите число:</label>
+            <input type="number" id="numberInput" placeholder="например 7" step="1" required>
+
+            <button type="submit" id="submitBtn">✅ Проверить</button>
+        </form>
+
+        <!-- блок для вывода сообщения -->
+        <div id="resultMessage" class="message">👆 ожидание ввода...</div>
+        <div class="hint">* число от 5 до 10 — "Принято", иначе "Ошибка"</div>
+    </div>
+
+    <script>
+        (function() {
+            // получаем ссылки на элементы DOM
+            const form = document.getElementById('validatorForm');
+            const inputField = document.getElementById('numberInput');
+            const resultDiv = document.getElementById('resultMessage');
+
+            // функция обновления сообщения (принимает текст и статус)
+            function setMessage(text, type = 'info') {
+                resultDiv.textContent = text;
+                // удаляем предыдущие классы состояний
+                resultDiv.classList.remove('accepted', 'error');
+                // если тип accepted или error — добавляем соответствующий класс
+                if (type === 'accepted') {
+                    resultDiv.classList.add('accepted');
+                } else if (type === 'error') {
+                    resultDiv.classList.add('error');
+                }
+            }
+
+            // обработчик отправки формы (срабатывает по кнопке или enter)
+            form.addEventListener('submit', function(event) {
+                // значение из поля (строка)
+                const rawValue = inputField.value.trim();
+
+                // если поле пустое (required обычно не пропустит, но защита)
+                if (rawValue === '') {
+                    setMessage('⛔ поле не может быть пустым', 'error');
+                    return;
+                }
+
+                // преобразуем в число (с плавающей точкой, но так как шаг 1, будет целое)
+                const num = Number(rawValue);
+
+                // проверяем, действительно ли это число (не NaN, не бесконечность)
+                if (isNaN(num) || !isFinite(num)) {
+                    setMessage('❌ введите корректное число', 'error');
+                    return;
+                }
+
+                // основное условие: от 5 до 10 включительно
+                if (num >= 5 && num <= 10) {
+                    setMessage('✅ Принято', 'accepted');
+                } else {
+                    setMessage('❌ Ошибка', 'error');
+                }
+
+                // небольшой визуальный эффект: снять фокус с поля
+                inputField.blur();
+            });
+
+            // дополнительно: очищаем сообщение, если пользователь начинает печатать заново (опционально)
+            inputField.addEventListener('focus', function() {
+                // можно убрать сообщение, а можно оставить — по желанию
+                // setMessage('👆 введите число...');
+                // но чтобы не сбрасывать классы, лучше просто убрать цвет, но сохранить текст? 
+                // сделаем другое: если фокус, ставим нейтральное (без классов)
+                // только если поле не пустое, чтобы не мешать
+                if (inputField.value.trim() === '') {
+                    setMessage('🔹 введите значение', 'info');
+                }
+            });
+
+            // дополнительная кнопка не нужна, но добавим live-пример при вводе через Enter (уже есть submit)
+            // можно также сбросить результат при очистке поля
+            inputField.addEventListener('input', function() {
+                // если поле стало пустым, можно показать нейтральное сообщение
+                if (inputField.value.trim() === '') {
+                    setMessage('👆 ожидание ввода...', 'info');
+                }
+                // но не сбрасываем сразу старый результат, чтобы не мелькало — лучше при пустом ставим ожидание
+            });
+
+            // устанавливаем начальное нейтральное сообщение
+            setMessage('👆 ожидание ввода...', 'info');
+        })();
+    </script>
+</body>
+</html>
